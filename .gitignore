@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+
+# VSCode
+.vscode/
+
+# Environment folders
+env/
+venv/
+.venv/
+
+# Conda environments (never push these!)
+conda_env/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Migrations cache (optional)
+*/migrations/__pycache__/
+
+# Byte-compiled files
+*.pyo
+*.pyd
+*.pyc

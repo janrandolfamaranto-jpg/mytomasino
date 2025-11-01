@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard | UST Ticket System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-success">
+  <div class="container">
+    <a class="navbar-brand" href="#">UST Ticket System</a>
+    <div class="collapse navbar-collapse">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <span class="navbar-text text-white me-3">Welcome, {{ user.username }}</span>
+        </li>
+        <li class="nav-item">
+          <a class="btn btn-outline-light" href="{% url 'user:login' %}?logout=1">Logout</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-5">
+    <div class="card shadow-sm">
+        <div class="card-header bg-success text-white">
+            <h3>Dashboard</h3>
+        </div>
+        <div class="card-body">
+            <p>Hello <strong>{{ user.username }}</strong>! Welcome to your dashboard.</p>
+            <p>You can add tickets, view notifications, and manage your account here.</p>
+
+            <a href="{% url 'user:logout' %}" class="btn btn-outline-light">Logout</a>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
