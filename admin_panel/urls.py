@@ -4,6 +4,5 @@ from . import views
 app_name = 'admin_panel'
 
 urlpatterns = [
-    path('', views.dashboard_home, name='home'),
     path('users/', views.users_list, name='users_list'),
 ]

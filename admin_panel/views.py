@@ -10,7 +10,7 @@ def admin_required(view_func):
 @login_required
 @admin_required
 def dashboard_home(request):
-    return render(request, 'admin_panel/dashboard.html')
+    return render(request, 'admin_panel/admin_dashboard.html')
 
 @login_required
 @admin_required

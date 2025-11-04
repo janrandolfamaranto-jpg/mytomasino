@@ -11,6 +11,18 @@ class EmailVerificationForm(forms.Form):
     )
 
 class RegisterForm(forms.Form):
+    first_name = forms.CharField(
+        label="First Name",
+        max_length=30,
+        widget=forms.TextInput(attrs={'placeholder': 'First Name', 'class': 'form-control'}),
+        required=True
+    )
+    last_name = forms.CharField(
+        label="Last Name",
+        max_length=30,
+        widget=forms.TextInput(attrs={'placeholder': 'Last Name', 'class': 'form-control'}),
+        required=True
+    )
     email = forms.EmailField(
         label="Email",
         widget=forms.EmailInput(attrs={'placeholder': 'yourname@ust-legazpi.edu.ph', 'class':'form-control'})
@@ -39,7 +51,6 @@ class RegisterForm(forms.Form):
         if pw and pw2 and pw != pw2:
             raise ValidationError("Passwords do not match.")
         return cleaned_data
-
 
 class LoginForm(forms.Form):
     email = forms.EmailField(

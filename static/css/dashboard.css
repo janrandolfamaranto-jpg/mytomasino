@@ -1,0 +1,252 @@
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: #f8f9fa;
+}
+
+.dashboard-container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.sidebar {
+  width: 240px;
+  background: #ffffff;
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-top-right-radius: 16px;
+  border-bottom-right-radius: 16px;
+  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
+  transition: width 0.3s ease, left 0.3s ease;
+  z-index: 15;
+  overflow: hidden;
+}
+
+/* 🟩 Top green profile section */
+.profile-section {
+  background: linear-gradient(180deg, #198754, #157347);
+  width: 100%;
+  padding: 1.5rem 1rem;
+  color: white;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  border-top-right-radius: 16px;
+}
+
+.profile-img {
+  width: 85px;
+  height: 85px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.7);
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.profile-img:hover {
+  transform: scale(1.05);
+}
+
+.profile-name {
+  font-weight: 600;
+  margin-top: 0.8rem;
+  font-size: 1rem;
+}
+
+.email {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.85);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 180px;
+  cursor: pointer;
+}
+
+.email:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: -1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.8);
+  color: white;
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* ⚪ Lower navigation area */
+.sidebar-nav {
+  width: 100%;
+  flex: 1;
+  padding: 1rem 0.5rem;
+}
+
+.sidebar-nav .nav-item {
+  display: flex;
+  align-items: center;
+  color: #157347;
+  text-decoration: none;
+  padding: 10px 15px;
+  margin: 6px 0;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: background 0.3s, transform 0.2s;
+}
+
+.sidebar-nav .nav-item i {
+  margin-right: 12px;
+  font-size: 1.1rem;
+}
+
+.sidebar-nav .nav-item:hover {
+  background: rgba(21, 115, 71, 0.08);
+  transform: translateX(4px);
+}
+
+.sidebar-nav .nav-item.active {
+  background: rgba(21, 115, 71, 0.15);
+}
+
+/* 🚪 Logout Button at Bottom */
+.logout-btn {
+  background: transparent;
+  border: 1px solid #dc3545;
+  color: #dc3545;
+  font-weight: 500;
+  font-size: 0.9rem;
+  border-radius: 20px;
+  padding: 6px 14px;
+  transition: all 0.3s ease;
+  margin-bottom: 1.5rem;
+}
+
+.logout-btn:hover {
+  background: #dc3545;
+  color: white;
+}
+
+/* 🧩 Main Content */
+.main-content {
+  flex: 1;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Header Bar */
+.dashboard-header {
+  height: 60px;
+  background: #fff;
+  border-bottom: 1px solid #dee2e6;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 1.5rem;
+  position: relative;
+  z-index: 10;
+}
+
+.notification-icon {
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.notification-icon i {
+  font-size: 1.4rem;
+  color: #157347;
+}
+
+.notification-icon:hover {
+  transform: scale(1.1);
+}
+
+.notif-dot {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 9px;
+  height: 9px;
+  background: #dc3545;
+  border-radius: 50%;
+}
+
+/* 🔔 Notification Sidebar */
+.notif-sidebar {
+  position: fixed;
+  right: -320px;
+  top: 0;
+  width: 320px;
+  height: 100vh;
+  background: #ffffff;
+  border-left: 1px solid #dee2e6;
+  box-shadow: -3px 0 10px rgba(0,0,0,0.1);
+  transition: right 0.35s ease;
+  z-index: 20;
+  overflow-y: auto;
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+
+.notif-sidebar.open {
+  right: 0;
+}
+
+.notif-sidebar h5 {
+  padding: 1rem;
+  border-bottom: 1px solid #dee2e6;
+  background: #f8f9fa;
+  color: #157347;
+}
+
+.notif-item {
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+  transition: background 0.3s;
+}
+
+.notif-item:hover {
+  background: #f6fff8;
+}
+
+/* 📱 Responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    left: -240px;
+    top: 0;
+    height: 100%;
+    z-index: 15;
+  }
+
+  .sidebar.collapsed {
+    left: 0;
+  }
+
+  .main-content {
+    flex: 1;
+  }
+
+  .notif-sidebar {
+    width: 100%;
+  }
+
+  .notif-sidebar.open {
+    right: 0;
+  }
+
+  .dashboard-header {
+    padding: 0 1rem;
+  }
+
+  .logout-btn {
+    font-size: 0.8rem;
+    padding: 4px 10px;
+  }
+}

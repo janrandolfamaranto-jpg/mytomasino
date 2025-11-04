@@ -1,0 +1,30 @@
+from django.db import models
+from django.contrib.auth.models import User
+
+class Ticket(models.Model):
+    CATEGORY_CHOICES = [('academics','Academics'),('facilities','Facilities'),('support','Support'), ('faculty','Faculty')]
+    STATUS_CHOICES = [('open','Open'),('in_progress','In Progress'),('completed','Completed')]
+
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='open')
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tickets_created')
+    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='tickets_assigned')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+class TicketHistory(models.Model):
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE)
+    action = models.CharField(max_length=200)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+class Notification(models.Model):
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE)
+    message = models.CharField(max_length=200)
+    read = models.BooleanField(default=False)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
