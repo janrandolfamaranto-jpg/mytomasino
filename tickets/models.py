@@ -18,9 +18,19 @@ class Ticket(models.Model):
         return self.title
 
 class TicketHistory(models.Model):
-    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE)
-    action = models.CharField(max_length=200)
+    ticket = models.ForeignKey(
+        'Ticket',
+        on_delete=models.SET_NULL,  # Set to NULL if ticket is deleted
+        null=True,                  # Allow null for deleted tickets
+        blank=True
+    )
+    ticket_title = models.CharField(max_length=255, null=True, blank=True)
+    action = models.CharField(max_length=255)
     timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.ticket_title or 'Deleted ticket'} - {self.action}"
+
 
 class Notification(models.Model):
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE)

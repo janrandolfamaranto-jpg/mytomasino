@@ -39,4 +39,38 @@ def create_ticket(request):
     
     return render(request, 'tickets/create_ticket.html', {'form': form})
 
+@login_required
+def delete_ticket(request, pk):
+    ticket = get_object_or_404(Ticket, pk=pk, created_by=request.user)
 
+    TicketHistory.objects.create(
+        ticket=None,  
+        ticket_title=ticket.title,
+        action="Ticket deleted by user"
+    )
+
+    ticket.delete()
+    return redirect('tickets:ticket_overview')
+
+
+@login_required
+def update_ticket(request, pk):
+    ticket = get_object_or_404(Ticket, pk=pk, created_by=request.user)
+
+    if request.method == 'POST':
+        form = TicketForm(request.POST, instance=ticket)
+        if form.is_valid():
+            updated_ticket = form.save()
+            TicketHistory.objects.create(
+                ticket=updated_ticket,
+                action="Ticket updated by user"
+            )
+            return redirect('tickets:ticket_detail', pk=ticket.pk)
+    else:
+        # This line is crucial — pre-fills the form with ticket data
+        form = TicketForm(instance=ticket)
+
+    # Render the correct template with context
+    return render(request, 'tickets/update_ticket.html', {'form': form, 'ticket': ticket})
+
+   
