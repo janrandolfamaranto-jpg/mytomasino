@@ -1,14 +1,16 @@
+{% load ticket_tags %}
+
 <div class="container mt-4">
 
   <!-- Header -->
-  <div class="d-flex justify-content-between align-items-center mb-3">
-      <h3>Your Tickets</h3>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+      <h3 class="fw-bold">Your Tickets</h3>
       <a hx-get="{% url 'tickets:create_ticket' %}" 
          hx-target="#dashboard-content" 
          hx-swap="innerHTML" 
          hx-push-url="{% url 'tickets:create_ticket' %}" 
          class="btn btn-primary">
-        Create Ticket
+        <i class="fas fa-plus"></i> Create Ticket
       </a>
   </div>
   
@@ -20,7 +22,7 @@
       <h2 class="accordion-header" id="headingOpen">
         <button class="accordion-button fw-semibold" type="button" data-bs-toggle="collapse"
           data-bs-target="#collapseOpen" aria-expanded="true">
-          🟢 Open Tickets
+          🟢 Open Tickets ({{ open_tickets.count }})
         </button>
       </h2>
       <div id="collapseOpen" class="accordion-collapse collapse show" data-bs-parent="#ticketAccordion">
@@ -29,16 +31,25 @@
             <ul class="list-group list-group-flush">
               {% for ticket in open_tickets %}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                  <div>
-                    <strong>{{ ticket.title }}</strong><br>
-                    <small class="text-muted">{{ ticket.category|capfirst }} • {{ ticket.created_at|date:"M d, Y" }}</small>
+                  <div class="flex-grow-1">
+                    <strong>{{ ticket.title }}</strong>
+                    {% if ticket|admin_notes_count > 0 %}
+                      <span class="badge bg-danger ms-2 animate__animated animate__pulse animate__infinite">
+                        <i class="fas fa-comment-dots"></i> {{ ticket|admin_notes_count }} new response{{ ticket|admin_notes_count|pluralize }}
+                      </span>
+                    {% endif %}
+                    <br>
+                    <small class="text-muted">
+                      <i class="fas fa-tag"></i> {{ ticket.get_category_display }} • 
+                      <i class="fas fa-clock"></i> {{ ticket.created_at|date:"M d, Y" }}
+                    </small>
                   </div>
                   <a hx-get="{% url 'tickets:ticket_detail' ticket.pk %}" 
                      hx-target="#dashboard-content" 
                      hx-swap="innerHTML" 
                      hx-push-url="{% url 'tickets:ticket_detail' ticket.pk %}" 
-                     class="btn btn-sm btn-outline-success">
-                     Open
+                     class="btn btn-sm btn-success ms-3">
+                     <i class="fas fa-eye"></i> Open
                   </a>
                 </li>
               {% endfor %}
@@ -55,7 +66,7 @@
       <h2 class="accordion-header" id="headingProgress">
         <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse"
           data-bs-target="#collapseProgress">
-          🟡 In Progress Tickets
+          🟡 In Progress Tickets ({{ in_progress_tickets.count }})
         </button>
       </h2>
       <div id="collapseProgress" class="accordion-collapse collapse" data-bs-parent="#ticketAccordion">
@@ -64,16 +75,25 @@
             <ul class="list-group list-group-flush">
               {% for ticket in in_progress_tickets %}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                  <div>
-                    <strong>{{ ticket.title }}</strong><br>
-                    <small class="text-muted">{{ ticket.category|capfirst }} • {{ ticket.created_at|date:"M d, Y" }}</small>
+                  <div class="flex-grow-1">
+                    <strong>{{ ticket.title }}</strong>
+                    {% if ticket|admin_notes_count > 0 %}
+                      <span class="badge bg-danger ms-2 animate__animated animate__pulse animate__infinite">
+                        <i class="fas fa-comment-dots"></i> {{ ticket|admin_notes_count }} new response{{ ticket|admin_notes_count|pluralize }}
+                      </span>
+                    {% endif %}
+                    <br>
+                    <small class="text-muted">
+                      <i class="fas fa-tag"></i> {{ ticket.get_category_display }} • 
+                      <i class="fas fa-clock"></i> {{ ticket.created_at|date:"M d, Y" }}
+                    </small>
                   </div>
                   <a hx-get="{% url 'tickets:ticket_detail' ticket.pk %}" 
                      hx-target="#dashboard-content" 
                      hx-swap="innerHTML" 
                      hx-push-url="{% url 'tickets:ticket_detail' ticket.pk %}" 
-                     class="btn btn-sm btn-outline-warning">
-                     View
+                     class="btn btn-sm btn-warning ms-3">
+                     <i class="fas fa-eye"></i> View
                   </a>
                 </li>
               {% endfor %}
@@ -90,7 +110,7 @@
       <h2 class="accordion-header" id="headingCompleted">
         <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse"
           data-bs-target="#collapseCompleted">
-          🔵 Completed Tickets
+          🔵 Completed Tickets ({{ completed_tickets.count }})
         </button>
       </h2>
       <div id="collapseCompleted" class="accordion-collapse collapse" data-bs-parent="#ticketAccordion">
@@ -99,16 +119,28 @@
             <ul class="list-group list-group-flush">
               {% for ticket in completed_tickets %}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                  <div>
-                    <strong>{{ ticket.title }}</strong><br>
-                    <small class="text-muted">{{ ticket.category|capfirst }} • {{ ticket.created_at|date:"M d, Y" }}</small>
+                  <div class="flex-grow-1">
+                    <strong>{{ ticket.title }}</strong>
+                    {% if ticket|admin_notes_count > 0 %}
+                      <span class="badge bg-info ms-2">
+                        <i class="fas fa-comment-dots"></i> {{ ticket|admin_notes_count }} response{{ ticket|admin_notes_count|pluralize }}
+                      </span>
+                    {% endif %}
+                    <br>
+                    <small class="text-muted">
+                      <i class="fas fa-tag"></i> {{ ticket.get_category_display }} • 
+                      <i class="fas fa-clock"></i> {{ ticket.created_at|date:"M d, Y" }}
+                      {% if ticket.assigned_to %}
+                        • <i class="fas fa-user-check text-success"></i> Resolved by {{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}
+                      {% endif %}
+                    </small>
                   </div>
                   <a hx-get="{% url 'tickets:ticket_detail' ticket.pk %}" 
                      hx-target="#dashboard-content" 
                      hx-swap="innerHTML" 
                      hx-push-url="{% url 'tickets:ticket_detail' ticket.pk %}" 
-                     class="btn btn-sm btn-outline-primary">
-                     View
+                     class="btn btn-sm btn-primary ms-3">
+                     <i class="fas fa-eye"></i> View
                   </a>
                 </li>
               {% endfor %}

@@ -1,8 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
-
-from django.db import models
-from django.contrib.auth.models import User
+from django.utils import timezone  # Add this import
+from django.utils.timesince import timesince
 
 class Ticket(models.Model):
     CATEGORY_CHOICES = [
@@ -38,6 +37,17 @@ class Ticket(models.Model):
     urgency = models.CharField(max_length=10, choices=URGENCY_CHOICES, null=True, blank=True)
     attachment = models.FileField(upload_to='ticket_attachments/', null=True, blank=True)
 
+    last_viewed_by_user = models.DateTimeField(null=True, blank=True)
+    last_admin_update = models.DateTimeField(null=True, blank=True)
+    
+    def has_unread_admin_notes(self):
+        """Check if there are admin notes the user hasn't seen"""
+        if not self.last_admin_update:
+            return False
+        if not self.last_viewed_by_user:
+            return True
+        return self.last_admin_update > self.last_viewed_by_user
+    
     def ticket_id(self):
         return f"TCKT-{self.pk:04d}"
     
@@ -48,17 +58,44 @@ class Ticket(models.Model):
 class TicketHistory(models.Model):
     ticket = models.ForeignKey(
         'Ticket',
-        on_delete=models.SET_NULL,  # Set to NULL if ticket is deleted
-        null=True,                  # Allow null for deleted tickets
+        on_delete=models.SET_NULL,
+        null=True,
         blank=True
     )
     ticket_title = models.CharField(max_length=255, null=True, blank=True)
+    new_status = models.CharField(max_length=50, null=True, blank=True)  # NEW FIELD
     action = models.CharField(max_length=255)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.ticket_title or 'Deleted ticket'} - {self.action}"
 
+class Notification(models.Model):
+    NOTIFICATION_TYPES = [
+        ('ticket_created', 'Ticket Created'),
+        ('ticket_updated', 'Ticket Updated'),
+        ('ticket_assigned', 'Ticket Assigned'),
+        ('ticket_completed', 'Ticket Completed'),
+        ('ticket_response', 'New Response'),
+    ]
 
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    ticket = models.ForeignKey('Ticket', on_delete=models.CASCADE, null=True, blank=True)
+    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES)
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.title}"
+
+    def time_ago(self):
+        """Return human-readable time ago"""
+        from django.utils.timesince import timesince
+        return timesince(self.created_at).split(',')[0] + ' ago'
 
 

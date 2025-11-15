@@ -33,7 +33,6 @@ def dashboard_history(request):
 
     return render(request, "dashboard/history.html", context)
 
-
 @login_required
 def dashboard_settings(request):
     user = request.user

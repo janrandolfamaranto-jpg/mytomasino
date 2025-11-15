@@ -8,29 +8,35 @@
       <ul class="list-group list-group-flush">
         {% for entry in history_entries %}
           <li class="list-group-item d-flex justify-content-between align-items-start
-                     {% if entry.ticket is None %}text-muted{% endif %}">
-            <div>
+                     {% if entry.ticket is None and 'deleted' in entry.action %}text-muted{% endif %}">
+            <div class="flex-grow-1">
               <strong>
                 {% if entry.ticket %}
                   {{ entry.ticket.title }}
                 {% else %}
-                  {{ entry.ticket_title }}
+                  {{ entry.ticket_title|default:"Deleted Ticket" }}
                 {% endif %}
               </strong>
               
-              {% if "created" in entry.action %}
-                <span class="badge bg-success ms-2">Created</span>
-              {% elif "updated" in entry.action %}
-                <span class="badge bg-warning text-dark ms-2">Updated</span>
-              {% elif "completed" in entry.action %}
-                <span class="badge bg-primary ms-2">Completed</span>
-              {% elif "deleted" in entry.action %}
+              {% if entry.new_status == 'deleted' or "deleted" in entry.action %}
                 <span class="badge bg-danger ms-2">Deleted</span>
+              {% elif entry.new_status == 'completed' %}
+                <span class="badge bg-success ms-2">Completed</span>
+              {% elif entry.new_status == 'in_progress' %}
+                <span class="badge bg-info ms-2">In Progress</span>
+              {% elif entry.new_status == 'open' %}
+                <span class="badge bg-warning text-dark ms-2">Open</span>
+              {% elif entry.new_status == 'resolved' %}
+                <span class="badge bg-primary ms-2">Resolved</span>
+              {% elif "created" in entry.action %}
+                <span class="badge bg-success ms-2">Created</span>
+              {% else %}
+                <span class="badge bg-secondary ms-2">Updated</span>
               {% endif %}
 
-              <p class="mb-0 text-muted">{{ entry.action }}</p>
+              <p class="mb-0 text-muted small">{{ entry.action }}</p>
             </div>
-            <small class="text-muted">{{ entry.timestamp|date:"M d, Y h:i A" }}</small>
+            <small class="text-muted text-nowrap ms-3">{{ entry.timestamp|date:"M d, Y h:i A" }}</small>
           </li>
         {% endfor %}
       </ul>

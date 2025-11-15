@@ -18,13 +18,22 @@ class TechnicalSupportForm(forms.ModelForm):
 
     class Meta:
         model = Ticket
-        fields = ['title', 'issue_type', 'description']
+        fields = ['title', 'description']
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Describe your issue'}),
             'title': forms.TextInput(attrs={'placeholder': 'Ticket Title'}),
         }
+    
+    def save(self, commit=True):
+        ticket = super().save(commit=False)
+        # Store issue_type in description or create a custom field
+        issue_type = self.cleaned_data.get('issue_type')
+        ticket.description = f"Issue Type: {dict(self.ISSUE_CHOICES)[issue_type]}\n\n{ticket.description}"
+        if commit:
+            ticket.save()
+        return ticket
 
-class AcademicSupportForm(forms.Form):
+class AcademicSupportForm(forms.ModelForm):
     program_year = forms.CharField(
         max_length=50, 
         label="Program / Year Level",
@@ -45,7 +54,25 @@ class AcademicSupportForm(forms.Form):
         label="Question / Issue"
     )
 
-class LostAndFoundForm(forms.Form):
+    class Meta:
+        model = Ticket
+        fields = ['title']
+        widgets = {
+            'title': forms.TextInput(attrs={'placeholder': 'Ticket Title'}),
+        }
+    
+    def save(self, commit=True):
+        ticket = super().save(commit=False)
+        program_year = self.cleaned_data.get('program_year')
+        inquiry_type = self.cleaned_data.get('inquiry_type')
+        question = self.cleaned_data.get('question')
+        
+        ticket.description = f"Program/Year: {program_year}\nInquiry Type: {dict(self.INQUIRY_CHOICES)[inquiry_type]}\n\n{question}"
+        if commit:
+            ticket.save()
+        return ticket
+
+class LostAndFoundForm(forms.ModelForm):
     DEPARTMENT_CHOICES = [
         ('jhs', 'JHS'),
         ('shs', 'SHS'),
@@ -64,7 +91,10 @@ class LostAndFoundForm(forms.Form):
         widget=forms.TextInput(attrs={'placeholder': 'Location'})
     )
     
-    date_time = forms.DateTimeField(label="Date / Time")
+    date_time = forms.DateTimeField(
+        label="Date / Time",
+        widget=forms.DateTimeInput(attrs={'type': 'datetime-local'})
+    )
     
     photo = forms.FileField(required=False, label="Upload Photo (optional)")
     
@@ -73,7 +103,33 @@ class LostAndFoundForm(forms.Form):
         required=False
     )
 
-class WelfareForm(forms.Form):
+    class Meta:
+        model = Ticket
+        fields = ['title']
+        widgets = {
+            'title': forms.TextInput(attrs={'placeholder': 'Item Name'}),
+        }
+    
+    def save(self, commit=True):
+        ticket = super().save(commit=False)
+        department = self.cleaned_data.get('department')
+        item_description = self.cleaned_data.get('item_description')
+        location = self.cleaned_data.get('location')
+        date_time = self.cleaned_data.get('date_time')
+        notes = self.cleaned_data.get('notes', '')
+        
+        ticket.description = f"Department: {dict(self.DEPARTMENT_CHOICES)[department]}\n"
+        ticket.description += f"Item: {item_description}\n"
+        ticket.description += f"Location: {location}\n"
+        ticket.description += f"Date/Time: {date_time.strftime('%Y-%m-%d %H:%M')}\n"
+        if notes:
+            ticket.description += f"Notes: {notes}"
+        
+        if commit:
+            ticket.save()
+        return ticket
+
+class WelfareForm(forms.ModelForm):
     CONTACT_CHOICES = [
         ('email', 'Email'),
         ('phone', 'Phone'),
@@ -101,7 +157,31 @@ class WelfareForm(forms.Form):
         label="Preferred Meeting Date"
     )
 
-class FacilitiesForm(forms.Form):
+    class Meta:
+        model = Ticket
+        fields = ['title']
+        widgets = {
+            'title': forms.TextInput(attrs={'placeholder': 'Counseling Request Title'}),
+        }
+    
+    def save(self, commit=True):
+        ticket = super().save(commit=False)
+        contact_method = self.cleaned_data.get('contact_method')
+        request_type = self.cleaned_data.get('request_type')
+        description = self.cleaned_data.get('description')
+        preferred_date = self.cleaned_data.get('preferred_date')
+        
+        ticket.description = f"Contact Method: {dict(self.CONTACT_CHOICES)[contact_method]}\n"
+        ticket.description += f"Request Type: {dict(self.REQUEST_CHOICES)[request_type]}\n"
+        if preferred_date:
+            ticket.description += f"Preferred Date: {preferred_date.strftime('%Y-%m-%d')}\n"
+        ticket.description += f"\n{description}"
+        
+        if commit:
+            ticket.save()
+        return ticket
+
+class FacilitiesForm(forms.ModelForm):
     ISSUE_CHOICES = [
         ('electrical', 'Electrical / Lighting'),
         ('plumbing', 'Plumbing / Water'),
@@ -134,3 +214,25 @@ class FacilitiesForm(forms.Form):
     
     urgency = forms.ChoiceField(choices=URGENCY_CHOICES, label="Urgency Level")
 
+    class Meta:
+        model = Ticket
+        fields = ['title']
+        widgets = {
+            'title': forms.TextInput(attrs={'placeholder': 'Issue Title'}),
+        }
+    
+    def save(self, commit=True):
+        ticket = super().save(commit=False)
+        location = self.cleaned_data.get('location')
+        issue_type = self.cleaned_data.get('issue_type')
+        description = self.cleaned_data.get('description')
+        urgency = self.cleaned_data.get('urgency')
+        
+        ticket.description = f"Location: {location}\n"
+        ticket.description += f"Issue Type: {dict(self.ISSUE_CHOICES)[issue_type]}\n"
+        ticket.description += f"Urgency: {dict(self.URGENCY_CHOICES)[urgency].upper()}\n\n"
+        ticket.description += description
+        
+        if commit:
+            ticket.save()
+        return ticket

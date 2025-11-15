@@ -1,36 +1,105 @@
 <div class="container mt-4">
 
+  <!-- Ticket Info -->
   <div class="card shadow-sm border-0 p-4 mb-4">
     <h2 class="fw-bold mb-2">{{ ticket.title }}</h2>
     <p class="text-muted mb-3">Created on {{ ticket.created_at|date:"M d, Y h:i A" }}</p>
 
     <p class="mb-1"><strong>Category:</strong> {{ ticket.get_category_display }}</p>
-    <p class="mb-0"><strong>Description:</strong></p>
-    <p class="text-muted">{{ ticket.description }}</p>
+
+    <!-- Example fields for Technical Support -->
+    {% if ticket.category == 'technical' %}
+      {% if ticket.issue_type %}<p class="mb-1"><strong>Issue Type:</strong> {{ ticket.issue_type }}</p>{% endif %}
+      {% if ticket.location %}<p class="mb-1"><strong>Location:</strong> {{ ticket.location }}</p>{% endif %}
+      {% if ticket.device %}<p class="mb-1"><strong>Device:</strong> {{ ticket.device }}</p>{% endif %}
+    {% elif ticket.category == 'academic' %}
+      {% if ticket.course %}<p class="mb-1"><strong>Course:</strong> {{ ticket.course }}</p>{% endif %}
+      {% if ticket.assignment %}<p class="mb-1"><strong>Assignment:</strong> {{ ticket.assignment }}</p>{% endif %}
+    {% elif ticket.category == 'lostfound' %}
+      {% if ticket.item_name %}<p class="mb-1"><strong>Item Name:</strong> {{ ticket.item_name }}</p>{% endif %}
+      {% if ticket.location_found %}<p class="mb-1"><strong>Location Found:</strong> {{ ticket.location_found }}</p>{% endif %}
+    {% elif ticket.category == 'welfare' %}
+      {% if ticket.request_type %}<p class="mb-1"><strong>Request Type:</strong> {{ ticket.request_type }}</p>{% endif %}
+      {% if ticket.details %}<p class="mb-1"><strong>Details:</strong> {{ ticket.details }}</p>{% endif %}
+    {% elif ticket.category == 'facilities' %}
+      {% if ticket.room %}<p class="mb-1"><strong>Room:</strong> {{ ticket.room }}</p>{% endif %}
+      {% if ticket.issue %}<p class="mb-1"><strong>Issue:</strong> {{ ticket.issue }}</p>{% endif %}
+    {% endif %}
+
+    <p class="mb-1"><strong>Status:</strong>
+      {% if ticket.status == 'open' %}<span class="badge bg-success">Open</span>
+      {% elif ticket.status == 'in_progress' %}<span class="badge bg-warning">In Progress</span>
+      {% elif ticket.status == 'completed' %}<span class="badge bg-primary">Completed</span>{% endif %}
+    </p>
+
+    {% if ticket.assigned_to %}
+      <p class="mb-1"><strong>Assigned to:</strong> {{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}</p>
+    {% endif %}
+
+    {% if ticket.description %}
+      <p class="mb-0 mt-3"><strong>Description:</strong></p>
+      <div class="bg-light p-3 rounded" style="white-space: pre-line;">{{ ticket.description }}</div>
+    {% endif %}
+
+    {% if ticket.image %}
+      <div class="mt-2">
+        <img src="{{ ticket.image.url }}" class="img-fluid rounded" alt="Ticket Image">
+      </div>
+    {% endif %}
   </div>
 
+  <!-- Admin Notes/Responses -->
+  {% if admin_notes %}
+    <div class="card shadow-sm border-0 p-4 mb-4">
+      <h5 class="mb-3"><i class="fas fa-comments text-primary"></i> Staff Responses</h5>
+      <div class="alert alert-info mb-3">
+        <i class="fas fa-info-circle"></i> Staff has responded to your ticket.
+      </div>
+      <div class="list-group list-group-flush">
+        {% for note in admin_notes %}
+          <div class="list-group-item border-start border-primary border-4 mb-2">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <span class="badge bg-primary">Staff Response</span>
+              <small class="text-muted">{{ note.timestamp|date:"M d, Y h:i A" }}</small>
+            </div>
+            <div style="white-space: pre-line;">{{ note.action }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Ticket History -->
+  <div class="card shadow-sm border-0 p-4 mb-4">
+    <h5 class="mb-3"><i class="fas fa-history"></i> Ticket History</h5>
+    <div class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
+      {% for item in history %}
+        <div class="list-group-item">
+          <div class="d-flex justify-content-between">
+            <div style="white-space: pre-line;">{{ item.action }}</div>
+            <small class="text-muted text-nowrap ms-3">{{ item.timestamp|date:"M d, Y h:i A" }}</small>
+          </div>
+        </div>
+      {% empty %}
+        <p class="text-muted mb-0">No history available.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
   <div class="d-flex justify-content-between mt-4">
-    <a hx-get="{% url 'tickets:ticket_overview' %}"
-       hx-target="#dashboard-content"
-       hx-swap="innerHTML"
-       hx-push-url="{% url 'tickets:ticket_overview' %}"
-       class="btn btn-outline-secondary">
-      ← Back to My Tickets
+    <a hx-get="{% url 'tickets:ticket_overview' %}" hx-target="#dashboard-content" hx-swap="innerHTML" hx-push-url="{% url 'tickets:ticket_overview' %}" class="btn btn-secondary">
+      <i class="fas fa-arrow-left"></i> Back to My Tickets
     </a>
+
     <div class="d-flex gap-2">
-      <a hx-get="{% url 'tickets:update_ticket' ticket.pk %}"
-         hx-target="#dashboard-content"
-         hx-swap="innerHTML"
-         hx-push-url="{% url 'tickets:update_ticket' ticket.pk %}"
-         class="btn btn-outline-warning">
-        ✏️ Update Ticket
-      </a>
-      <a hx-get="{% url 'tickets:delete_ticket' ticket.pk %}"
-         hx-target="#dashboard-content"
-         hx-swap="innerHTML"
-         hx-push-url="{% url 'tickets:delete_ticket' ticket.pk %}"
-         class="btn btn-outline-danger">
-        🗑 Delete Ticket
+      {% if ticket.status != 'completed' %}
+        <a hx-get="{% url 'tickets:update_ticket' ticket.pk %}" hx-target="#dashboard-content" hx-swap="innerHTML" hx-push-url="{% url 'tickets:update_ticket' ticket.pk %}" class="btn btn-warning">
+          <i class="fas fa-edit"></i> Update Ticket
+        </a>
+      {% endif %}
+      <a hx-get="{% url 'tickets:delete_ticket' ticket.pk %}" hx-target="#dashboard-content" hx-swap="innerHTML" class="btn btn-danger">
+        <i class="fas fa-trash"></i> Delete Ticket
       </a>
     </div>
   </div>

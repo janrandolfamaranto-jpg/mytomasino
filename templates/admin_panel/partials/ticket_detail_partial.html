@@ -1,30 +1,109 @@
-<div id="ticket-detail-{{ ticket.pk }}">
-  <h4>Ticket {{ ticket.ticket_id }} - {{ ticket.title }}</h4>
-  <p><strong>Category:</strong> {{ ticket.get_category_display|default:ticket.category }}</p>
-  <p><strong>Status:</strong> {{ ticket.get_status_display|default:ticket.status|title }}</p>
-  <p><strong>Created By:</strong> {{ ticket.created_by.get_full_name|default:ticket.created_by.username }}</p>
-  <p><strong>Assigned To:</strong> 
-    {% if ticket.assigned_to %}
-      {{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}
-    {% else %}
-      -
-    {% endif %}
-  </p>
-  <p><strong>Description:</strong></p>
-  <p>{{ ticket.description }}</p>
+<div class="card shadow-sm border-0">
+  <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+    <h4 class="mb-0">Ticket #{{ ticket.ticket_id }} - {{ ticket.title }}</h4>
+    <button 
+      onclick="document.getElementById('ticket-detail-container').innerHTML = '<div class=\'card shadow-sm border-0\'><div class=\'card-body text-center py-5\'><i class=\'fas fa-ticket-alt fa-3x text-muted mb-3\'></i><h5 class=\'text-muted\'>Select a ticket to view details</h5></div></div>'"
+      class="btn btn-sm btn-light">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  
+  <div class="card-body">
+    <!-- Ticket Information -->
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <p><strong>Created by:</strong> {{ ticket.created_by.get_full_name|default:ticket.created_by.username }}</p>
+        <p><strong>Email:</strong> {{ ticket.created_by.email }}</p>
+        <p><strong>Category:</strong> {{ ticket.get_category_display|default:ticket.category }}</p>
+      </div>
+      <div class="col-md-6">
+        <p><strong>Status:</strong> 
+          {% if ticket.status == 'open' %}
+            <span class="badge bg-primary">Open</span>
+          {% elif ticket.status == 'in_progress' %}
+            <span class="badge bg-warning">In Progress</span>
+          {% elif ticket.status == 'completed' %}
+            <span class="badge bg-success">Completed</span>
+          {% endif %}
+        </p>
+        <p><strong>Assigned to:</strong> 
+          {% if ticket.assigned_to %}
+            {{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}
+          {% else %}
+            Not assigned
+          {% endif %}
+        </p>
+        <p><strong>Created:</strong> {{ ticket.created_at|date:"F d, Y H:i" }}</p>
+      </div>
+    </div>
 
-  <a href="{% url 'admin_panel:update_ticket' ticket.pk %}" 
-     class="btn btn-warning"
-     hx-get="{% url 'admin_panel:update_ticket' ticket.pk %}"
-     hx-target="#ticket-detail-{{ ticket.pk }}"
-     hx-swap="outerHTML">
-    Update Status
-  </a>
-  <a href="{% url 'admin_panel:ticket_list' %}" 
-     class="btn btn-secondary"
-     hx-get="{% url 'admin_panel:ticket_list' %}"
-     hx-target="#ticket-table"
-     hx-swap="innerHTML">
-    Back to Tickets
-  </a>
-</div>
+    <div class="mb-4">
+      <h5>Description:</h5>
+      <div class="bg-light p-3 rounded" style="white-space: pre-line;">{{ ticket.description }}</div>
+    </div>
+
+    <!-- Update Status Form -->
+    <div class="mb-4">
+      <h5>Update Status</h5>
+      <form hx-post="{% url 'admin_panel:update_ticket' ticket.pk %}"
+            hx-target="#ticket-detail-container"
+            hx-swap="innerHTML"
+            class="row g-3">
+        {% csrf_token %}
+        <div class="col-auto">
+          <select name="status" class="form-select">
+            <option value="open" {% if ticket.status == 'open' %}selected{% endif %}>Open</option>
+            <option value="in_progress" {% if ticket.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+            <option value="completed" {% if ticket.status == 'completed' %}selected{% endif %}>Completed</option>
+          </select>
+        </div>
+        <div class="col-auto">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> Update Status
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Add Note Form -->
+    <div class="mb-4">
+      <h5>Add Note / Response</h5>
+      <form hx-post="{% url 'admin_panel:add_ticket_note' ticket.pk %}"
+            hx-target="#ticket-detail-container"
+            hx-swap="innerHTML">
+        {% csrf_token %}
+        <div class="mb-3">
+          <textarea name="note" class="form-control" rows="3" placeholder="Enter your response or note..." required></textarea>
+        </div>
+        <button type="submit" class="btn btn-success">
+          <i class="fas fa-comment"></i> Add Note
+        </button>
+      </form>
+    </div>
+
+    <!-- Ticket History -->
+    <div class="mb-4">
+      <h5>Ticket History</h5>
+      <div class="list-group" style="max-height: 300px; overflow-y: auto;">
+        {% for item in history %}
+          <div class="list-group-item">
+            <div class="d-flex justify-content-between">
+              <div style="white-space: pre-line;">{{ item.action }}</div>
+              <small class="text-muted text-nowrap ms-3">{{ item.timestamp|date:"M d, Y H:i" }}</small>
+            </div>
+          </div>
+        {% empty %}
+          <p class="text-muted">No history available.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+<!-- Actions -->
+  <div class="d-flex justify-content-end gap-2">
+    <button class="btn btn-danger"
+            hx-get="{% url 'admin_panel:delete_ticket' ticket.pk %}"
+            hx-target="#ticket-detail-container"
+            hx-swap="innerHTML">
+      <i class="fas fa-trash"></i> Delete Ticket
+    </button>
+  </div>

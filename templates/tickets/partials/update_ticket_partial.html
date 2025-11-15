@@ -1,40 +1,26 @@
 <div class="container mt-4">
-  <div class="card shadow-sm p-4 border-0">
-    <h3 class="mb-4">Update Ticket: {{ ticket.title }}</h3>
 
-    <form hx-post="{% url 'tickets:update_ticket' ticket.pk %}"
-          hx-target="#dashboard-content"
-          hx-swap="innerHTML"
-          hx-push-url="{% url 'tickets:ticket_detail' ticket.pk %}">
+  <div class="card shadow-sm border-0 p-4 mb-4">
+    <h2 class="fw-bold mb-3"><i class="fas fa-edit text-warning"></i> Update Ticket</h2>
+
+    <form method="POST" hx-post="{% url 'tickets:update_ticket' ticket.pk %}" 
+          hx-target="#dashboard-content" hx-swap="innerHTML">
       {% csrf_token %}
+      {{ form.non_field_errors }}
 
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Title</label>
-        {{ form.title }}
-      </div>
+      {% for field in form %}
+        <div class="mb-3">
+          {{ field.label_tag }}
+          {{ field }}
+          {{ field.errors }}
+        </div>
+      {% endfor %}
 
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Category</label>
-        {{ form.category }}
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Description</label>
-        {{ form.description }}
-      </div>
-
-      <div class="d-flex justify-content-between">
-        <a hx-get="{% url 'tickets:ticket_detail' ticket.pk %}"
-           hx-target="#dashboard-content"
-           hx-swap="innerHTML"
-           class="btn btn-secondary">
-          Cancel
-        </a>
-
-        <button type="submit" class="btn btn-warning">
-          Update Ticket
-        </button>
-      </div>
+      <button type="submit" class="btn btn-primary">Save Changes</button>
+      <a hx-get="{% url 'tickets:ticket_detail' ticket.pk %}" 
+         hx-target="#dashboard-content" hx-swap="innerHTML" 
+         class="btn btn-secondary ms-2">Cancel</a>
     </form>
   </div>
+
 </div>
