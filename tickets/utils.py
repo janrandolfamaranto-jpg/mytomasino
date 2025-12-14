@@ -3,9 +3,9 @@ from user.models import Office, StaffProfile
 def assign_office_and_staff(ticket):
     category_map = {
         'academic': 'Registrar’s Office',
-        'technical': 'IT Department',
-        'facilities': 'Maintenance Department',
-        'lostfound': 'Security Office',
+        'technical': 'ETC',
+        'facilities': 'Physical Plant and Facilities Management Office',
+        'lostfound': 'Principal Office', 'Office of Student Services'
         'welfare': 'Guidance Office',
     }
 

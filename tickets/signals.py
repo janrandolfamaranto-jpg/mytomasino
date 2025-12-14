@@ -69,7 +69,18 @@ def ticket_status_changed(sender, instance, **kwargs):
 
 @receiver(post_save, sender=TicketHistory)
 def admin_note_added(sender, instance, created, **kwargs):
-    """Update last_admin_update when admin adds a note"""
+    """Update last_admin_update and create notification when admin adds a note"""
     if created and instance.ticket and 'Note added by' in instance.action:
+        # Update ticket's last admin update timestamp
         instance.ticket.last_admin_update = timezone.now()
         instance.ticket.save(update_fields=['last_admin_update'])
+        
+        # Create notification for ticket owner
+        if instance.ticket.user:
+            Notification.objects.create(
+                user=instance.ticket.user,
+                ticket=instance.ticket,
+                notification_type='ticket_response',
+                title=f'New response on ticket: {instance.ticket.title}',
+                message=f'An admin has responded to your ticket.'
+            )

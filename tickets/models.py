@@ -32,7 +32,8 @@ class Ticket(models.Model):
     assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='tickets_assigned')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    
+    metadata = models.JSONField(null=True, blank=True)
   
     urgency = models.CharField(max_length=10, choices=URGENCY_CHOICES, null=True, blank=True)
     attachment = models.FileField(upload_to='ticket_attachments/', null=True, blank=True)

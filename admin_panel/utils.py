@@ -11,8 +11,10 @@ def send_ticket_status_email(user, ticket_id, new_status):
 
 OFFICE_TICKET_CATEGORIES = {
     "Registrar’s Office": ["academic"],          
-    "IT Office": ["technical"],                  
+    "ETC": ["technical"],                  
     "Physical Plant and Facilities Management Office": ["facilities"],  
-    "Principal Office": ["lostfound"],            
-    "Guidance Office": ["welfare"],               
+    "Principal Office" : ["lostfound"],            
+    "Office of Student Services": ["lostfound"],            
+    "Guidance Office": ["welfare"],     
+    "Office of Media, Alumni, and Public Affairs": ["general"],         
 }

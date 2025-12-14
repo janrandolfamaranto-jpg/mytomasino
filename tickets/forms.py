@@ -1,10 +1,12 @@
 from django import forms
 from .models import Ticket
 
+
 class TicketForm(forms.ModelForm):
     class Meta:
         model = Ticket
         fields = ['title', 'description', 'category']
+
 
 class TechnicalSupportForm(forms.ModelForm):
     ISSUE_CHOICES = [
@@ -26,12 +28,21 @@ class TechnicalSupportForm(forms.ModelForm):
     
     def save(self, commit=True):
         ticket = super().save(commit=False)
-        # Store issue_type in description or create a custom field
         issue_type = self.cleaned_data.get('issue_type')
-        ticket.description = f"Issue Type: {dict(self.ISSUE_CHOICES)[issue_type]}\n\n{ticket.description}"
+        
+        # Store structured data in metadata JSON field
+        ticket.metadata = {
+            'issue_type': issue_type,
+            'issue_type_display': dict(self.ISSUE_CHOICES)[issue_type]
+        }
+        
+        # Description stays clean - only the actual user description
+        # (already set by the parent save())
+        
         if commit:
             ticket.save()
         return ticket
+
 
 class AcademicSupportForm(forms.ModelForm):
     program_year = forms.CharField(
@@ -41,11 +52,11 @@ class AcademicSupportForm(forms.ModelForm):
     )
     
     INQUIRY_CHOICES = [
-        ('enrollment','Enrollment / Registration'),
-        ('grades','Grades / Transcript'),
-        ('schedule','Schedule / Class Availability'),
-        ('curriculum','Curriculum / Course Requirements'),
-        ('other','Other')
+        ('enrollment', 'Enrollment / Registration'),
+        ('grades', 'Grades / Transcript'),
+        ('schedule', 'Schedule / Class Availability'),
+        ('curriculum', 'Curriculum / Course Requirements'),
+        ('other', 'Other')
     ]
     inquiry_type = forms.ChoiceField(choices=INQUIRY_CHOICES, label="Inquiry Type")
     
@@ -67,10 +78,20 @@ class AcademicSupportForm(forms.ModelForm):
         inquiry_type = self.cleaned_data.get('inquiry_type')
         question = self.cleaned_data.get('question')
         
-        ticket.description = f"Program/Year: {program_year}\nInquiry Type: {dict(self.INQUIRY_CHOICES)[inquiry_type]}\n\n{question}"
+        # Store structured data in metadata
+        ticket.metadata = {
+            'program_year': program_year,
+            'inquiry_type': inquiry_type,
+            'inquiry_type_display': dict(self.INQUIRY_CHOICES)[inquiry_type]
+        }
+        
+        # Store the actual question/description
+        ticket.description = question
+        
         if commit:
             ticket.save()
         return ticket
+
 
 class LostAndFoundForm(forms.ModelForm):
     DEPARTMENT_CHOICES = [
@@ -105,10 +126,16 @@ class LostAndFoundForm(forms.ModelForm):
 
     class Meta:
         model = Ticket
-        fields = ['title']
+        fields = ['title', 'attachment']
         widgets = {
             'title': forms.TextInput(attrs={'placeholder': 'Item Name'}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Map the photo field to the attachment field
+        if 'photo' in self.data or 'photo' in self.files:
+            self.fields['attachment'].required = False
     
     def save(self, commit=True):
         ticket = super().save(commit=False)
@@ -117,17 +144,29 @@ class LostAndFoundForm(forms.ModelForm):
         location = self.cleaned_data.get('location')
         date_time = self.cleaned_data.get('date_time')
         notes = self.cleaned_data.get('notes', '')
+        photo = self.cleaned_data.get('photo')
         
-        ticket.description = f"Department: {dict(self.DEPARTMENT_CHOICES)[department]}\n"
-        ticket.description += f"Item: {item_description}\n"
-        ticket.description += f"Location: {location}\n"
-        ticket.description += f"Date/Time: {date_time.strftime('%Y-%m-%d %H:%M')}\n"
+        # Store structured data in metadata
+        ticket.metadata = {
+            'department': department,
+            'department_display': dict(self.DEPARTMENT_CHOICES)[department],
+            'location': location,
+            'date_time': date_time.strftime('%Y-%m-%d %H:%M'),
+        }
+        
+        # Store the description and notes
+        ticket.description = item_description
         if notes:
-            ticket.description += f"Notes: {notes}"
+            ticket.description += f"\n\nNotes: {notes}"
+        
+        # Handle photo upload
+        if photo:
+            ticket.attachment = photo
         
         if commit:
             ticket.save()
         return ticket
+
 
 class WelfareForm(forms.ModelForm):
     CONTACT_CHOICES = [
@@ -171,15 +210,24 @@ class WelfareForm(forms.ModelForm):
         description = self.cleaned_data.get('description')
         preferred_date = self.cleaned_data.get('preferred_date')
         
-        ticket.description = f"Contact Method: {dict(self.CONTACT_CHOICES)[contact_method]}\n"
-        ticket.description += f"Request Type: {dict(self.REQUEST_CHOICES)[request_type]}\n"
+        # Store structured data in metadata
+        ticket.metadata = {
+            'contact_method': contact_method,
+            'contact_method_display': dict(self.CONTACT_CHOICES)[contact_method],
+            'request_type': request_type,
+            'request_type_display': dict(self.REQUEST_CHOICES)[request_type],
+        }
+        
         if preferred_date:
-            ticket.description += f"Preferred Date: {preferred_date.strftime('%Y-%m-%d')}\n"
-        ticket.description += f"\n{description}"
+            ticket.metadata['preferred_date'] = preferred_date.strftime('%Y-%m-%d')
+        
+        # Store the actual description
+        ticket.description = description
         
         if commit:
             ticket.save()
         return ticket
+
 
 class FacilitiesForm(forms.ModelForm):
     ISSUE_CHOICES = [
@@ -216,10 +264,16 @@ class FacilitiesForm(forms.ModelForm):
 
     class Meta:
         model = Ticket
-        fields = ['title']
+        fields = ['title', 'attachment']
         widgets = {
             'title': forms.TextInput(attrs={'placeholder': 'Issue Title'}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Map the photo field to the attachment field
+        if 'photo' in self.data or 'photo' in self.files:
+            self.fields['attachment'].required = False
     
     def save(self, commit=True):
         ticket = super().save(commit=False)
@@ -227,11 +281,23 @@ class FacilitiesForm(forms.ModelForm):
         issue_type = self.cleaned_data.get('issue_type')
         description = self.cleaned_data.get('description')
         urgency = self.cleaned_data.get('urgency')
+        photo = self.cleaned_data.get('photo')
         
-        ticket.description = f"Location: {location}\n"
-        ticket.description += f"Issue Type: {dict(self.ISSUE_CHOICES)[issue_type]}\n"
-        ticket.description += f"Urgency: {dict(self.URGENCY_CHOICES)[urgency].upper()}\n\n"
-        ticket.description += description
+        # Store structured data in metadata
+        ticket.metadata = {
+            'location': location,
+            'issue_type': issue_type,
+            'issue_type_display': dict(self.ISSUE_CHOICES)[issue_type],
+            'urgency': urgency,
+            'urgency_display': dict(self.URGENCY_CHOICES)[urgency]
+        }
+        
+        # Store the actual description
+        ticket.description = description
+        
+        # Handle photo upload
+        if photo:
+            ticket.attachment = photo
         
         if commit:
             ticket.save()

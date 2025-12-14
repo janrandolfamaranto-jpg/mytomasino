@@ -60,6 +60,7 @@ class UserProfile(models.Model):
         validators=[
             RegexValidator(r"^\d{1,9}$", "ID Number must contain only up to 9 digits.")
         ],
+        unique=True,
         blank=True,
         null=True,
     )

@@ -7,28 +7,69 @@
 
     <p class="mb-1"><strong>Category:</strong> {{ ticket.get_category_display }}</p>
 
-    <!-- Example fields for Technical Support -->
-    {% if ticket.category == 'technical' %}
-      {% if ticket.issue_type %}<p class="mb-1"><strong>Issue Type:</strong> {{ ticket.issue_type }}</p>{% endif %}
-      {% if ticket.location %}<p class="mb-1"><strong>Location:</strong> {{ ticket.location }}</p>{% endif %}
-      {% if ticket.device %}<p class="mb-1"><strong>Device:</strong> {{ ticket.device }}</p>{% endif %}
-    {% elif ticket.category == 'academic' %}
-      {% if ticket.course %}<p class="mb-1"><strong>Course:</strong> {{ ticket.course }}</p>{% endif %}
-      {% if ticket.assignment %}<p class="mb-1"><strong>Assignment:</strong> {{ ticket.assignment }}</p>{% endif %}
-    {% elif ticket.category == 'lostfound' %}
-      {% if ticket.item_name %}<p class="mb-1"><strong>Item Name:</strong> {{ ticket.item_name }}</p>{% endif %}
-      {% if ticket.location_found %}<p class="mb-1"><strong>Location Found:</strong> {{ ticket.location_found }}</p>{% endif %}
-    {% elif ticket.category == 'welfare' %}
-      {% if ticket.request_type %}<p class="mb-1"><strong>Request Type:</strong> {{ ticket.request_type }}</p>{% endif %}
-      {% if ticket.details %}<p class="mb-1"><strong>Details:</strong> {{ ticket.details }}</p>{% endif %}
-    {% elif ticket.category == 'facilities' %}
-      {% if ticket.room %}<p class="mb-1"><strong>Room:</strong> {{ ticket.room }}</p>{% endif %}
-      {% if ticket.issue %}<p class="mb-1"><strong>Issue:</strong> {{ ticket.issue }}</p>{% endif %}
+    <!-- Display metadata fields based on category -->
+    {% if ticket.metadata %}
+      
+      {% if ticket.category == 'technical' %}
+        {% if ticket.metadata.issue_type_display %}
+          <p class="mb-1"><strong>Issue Type:</strong> {{ ticket.metadata.issue_type_display }}</p>
+        {% endif %}
+        
+      {% elif ticket.category == 'academic' %}
+        {% if ticket.metadata.program_year %}
+          <p class="mb-1"><strong>Program / Year:</strong> {{ ticket.metadata.program_year }}</p>
+        {% endif %}
+        {% if ticket.metadata.inquiry_type_display %}
+          <p class="mb-1"><strong>Inquiry Type:</strong> {{ ticket.metadata.inquiry_type_display }}</p>
+        {% endif %}
+        
+      {% elif ticket.category == 'lostfound' %}
+        {% if ticket.metadata.department_display %}
+          <p class="mb-1"><strong>Department:</strong> {{ ticket.metadata.department_display }}</p>
+        {% endif %}
+        {% if ticket.metadata.location %}
+          <p class="mb-1"><strong>Location:</strong> {{ ticket.metadata.location }}</p>
+        {% endif %}
+        {% if ticket.metadata.date_time %}
+          <p class="mb-1"><strong>Date/Time:</strong> {{ ticket.metadata.date_time }}</p>
+        {% endif %}
+        
+      {% elif ticket.category == 'welfare' %}
+        {% if ticket.metadata.contact_method_display %}
+          <p class="mb-1"><strong>Contact Method:</strong> {{ ticket.metadata.contact_method_display }}</p>
+        {% endif %}
+        {% if ticket.metadata.request_type_display %}
+          <p class="mb-1"><strong>Request Type:</strong> {{ ticket.metadata.request_type_display }}</p>
+        {% endif %}
+        {% if ticket.metadata.preferred_date %}
+          <p class="mb-1"><strong>Preferred Date:</strong> {{ ticket.metadata.preferred_date }}</p>
+        {% endif %}
+        
+      {% elif ticket.category == 'facilities' %}
+        {% if ticket.metadata.location %}
+          <p class="mb-1"><strong>Location:</strong> {{ ticket.metadata.location }}</p>
+        {% endif %}
+        {% if ticket.metadata.issue_type_display %}
+          <p class="mb-1"><strong>Issue Type:</strong> {{ ticket.metadata.issue_type_display }}</p>
+        {% endif %}
+        {% if ticket.metadata.urgency_display %}
+          <p class="mb-1">
+            <strong>Urgency:</strong> 
+            <span class="badge 
+              {% if ticket.metadata.urgency == 'high' %}bg-danger
+              {% elif ticket.metadata.urgency == 'medium' %}bg-warning text-dark
+              {% else %}bg-secondary{% endif %}">
+              {{ ticket.metadata.urgency_display|upper }}
+            </span>
+          </p>
+        {% endif %}
+      {% endif %}
+      
     {% endif %}
 
     <p class="mb-1"><strong>Status:</strong>
       {% if ticket.status == 'open' %}<span class="badge bg-success">Open</span>
-      {% elif ticket.status == 'in_progress' %}<span class="badge bg-warning">In Progress</span>
+      {% elif ticket.status == 'in_progress' %}<span class="badge bg-warning text-dark">In Progress</span>
       {% elif ticket.status == 'completed' %}<span class="badge bg-primary">Completed</span>{% endif %}
     </p>
 
@@ -36,14 +77,27 @@
       <p class="mb-1"><strong>Assigned to:</strong> {{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}</p>
     {% endif %}
 
+    <!-- NOW the description is clean and separate -->
     {% if ticket.description %}
-      <p class="mb-0 mt-3"><strong>Description:</strong></p>
+      <hr class="my-3">
+      <p class="mb-2"><strong>Description:</strong></p>
       <div class="bg-light p-3 rounded" style="white-space: pre-line;">{{ ticket.description }}</div>
     {% endif %}
 
-    {% if ticket.image %}
+    <!-- Handle attachments (photos) -->
+    {% if ticket.attachment %}
+      <hr class="my-3">
       <div class="mt-2">
-        <img src="{{ ticket.image.url }}" class="img-fluid rounded" alt="Ticket Image">
+        <p class="mb-2"><strong>Attachment:</strong></p>
+        {% if ticket.attachment.url|lower|slice:"-4:" == ".jpg" or ticket.attachment.url|lower|slice:"-4:" == ".png" or ticket.attachment.url|lower|slice:"-5:" == ".jpeg" or ticket.attachment.url|lower|slice:"-5:" == ".webp" or ticket.attachment.url|lower|slice:"-4:" == ".gif" %}
+          <!-- Display image -->
+          <img src="{{ ticket.attachment.url }}" class="img-fluid rounded shadow-sm" alt="Ticket Attachment" style="max-width: 600px;">
+        {% else %}
+          <!-- Display download link for non-image files -->
+          <a href="{{ ticket.attachment.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-download"></i> Download Attachment
+          </a>
+        {% endif %}
       </div>
     {% endif %}
   </div>

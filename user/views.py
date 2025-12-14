@@ -114,6 +114,34 @@ def login_view(request):
             return redirect('admin_panel:admin_home')
         return redirect('dashboard:home')
 
+    # Handle barcode scanner login
+    if request.method == 'POST' and request.POST.get('barcode_login'):
+        student_id = request.POST.get('student_id', '').strip()
+        
+        if student_id:
+            try:
+                # Get user by student ID from UserProfile
+                user_profile = UserProfile.objects.select_related('user').get(id_number=student_id)
+                user = user_profile.user
+                
+                # Log them in without password
+                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                messages.success(request, f'Welcome, {user.get_full_name() or user.username}!')
+                
+                if user.is_superuser or user.is_staff:
+                    return redirect('admin_panel:admin_home')
+                return redirect('dashboard:home')
+                
+            except UserProfile.DoesNotExist:
+                messages.error(request, 'Invalid student ID.')
+            except UserProfile.MultipleObjectsReturned:
+                messages.error(request, 'Multiple users found with this ID. Please contact support.')
+        else:
+            messages.error(request, 'Please scan a valid student ID.')
+        
+        return render(request, 'user/login.html', {'form': LoginForm()})
+
+    # Regular login form handling
     form = LoginForm(request.POST or None)
 
     if request.method == "POST" and form.is_valid():

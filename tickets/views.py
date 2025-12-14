@@ -44,6 +44,12 @@ def ticket_detail(request, pk):
     ticket.last_viewed_by_user = timezone.now()
     ticket.save(update_fields=['last_viewed_by_user'])
 
+    Notification.objects.filter(
+        user=request.user,
+        ticket=ticket,
+        is_read=False
+    ).update(is_read=True)
+
     history = TicketHistory.objects.filter(ticket=ticket).order_by('-timestamp')
     admin_notes = history.filter(action__icontains='Note added by')
     ticket_history = history.exclude(action__icontains='Note added by')

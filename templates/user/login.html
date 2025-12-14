@@ -14,6 +14,12 @@
         {% endfor %}
       {% endif %}
 
+      <form method="post" id="barcodeForm" style="position: absolute; left: -9999px;">
+        {% csrf_token %}
+        <input type="text" name="student_id" id="barcodeInput" autofocus>
+        <input type="hidden" name="barcode_login" value="1">
+      </form>
+
       <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
@@ -33,4 +39,38 @@
     </div>
   </div>
 </div>
+
+<script>
+  // Keep focus on barcode input when user isn't actively typing in the form
+  let typingTimer;
+  const barcodeInput = document.getElementById('barcodeInput');
+  const barcodeForm = document.getElementById('barcodeForm');
+  
+  // Auto-submit when barcode scanner finishes (barcode scanners typically add Enter)
+  barcodeInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      barcodeForm.submit();
+    }
+  });
+
+  // Keep focus on barcode input unless user clicks on the visible form
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('form:not(#barcodeForm)')) {
+      barcodeInput.focus();
+    }
+  });
+
+  // Refocus on barcode input after a short delay of no typing
+  document.addEventListener('keyup', function(e) {
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(function() {
+      if (document.activeElement.tagName !== 'INPUT' && 
+          document.activeElement.tagName !== 'BUTTON') {
+        barcodeInput.focus();
+      }
+    }, 2000);
+  });
+</script>
+
 {% endblock %}
